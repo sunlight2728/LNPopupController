@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import LNPopupController
 
 class DemoMusicPlayerController: UIViewController {
 
@@ -14,30 +15,41 @@ class DemoMusicPlayerController: UIViewController {
 	@IBOutlet weak var albumNameLabel: UILabel!
 	@IBOutlet weak var progressView: UIProgressView!
 	
-	var timer : NSTimer?
+	@IBOutlet weak var albumArtImageView: UIImageView!
+	
+	let accessibilityDateComponentsFormatter = DateComponentsFormatter()
+	
+	var timer : Timer?
 	
 	required init?(coder aDecoder: NSCoder) {
 		super.init(coder: aDecoder)
 		
-		if UIScreen.mainScreen().traitCollection.userInterfaceIdiom == .Pad {
-			self.popupItem.leftBarButtonItems = [UIBarButtonItem(image: UIImage(named: "prev"), style: .Plain, target: nil, action: nil),
-												UIBarButtonItem(image: UIImage(named: "pause"), style: .Plain, target: nil, action: nil),
-												UIBarButtonItem(image: UIImage(named: "nextFwd"), style: .Plain, target: nil, action: nil)]
-			self.popupItem.rightBarButtonItems = [UIBarButtonItem(image: UIImage(named: "next"), style: .Plain, target: nil, action: nil),
-												UIBarButtonItem(image: UIImage(named: "action"), style: .Plain, target: nil, action: nil)]
+		let pause = UIBarButtonItem(image: UIImage(named: "pause"), style: .plain, target: nil, action: nil)
+		pause.accessibilityLabel = NSLocalizedString("Pause", comment: "")
+		let next = UIBarButtonItem(image: UIImage(named: "nextFwd"), style: .plain, target: nil, action: nil)
+		next.accessibilityLabel = NSLocalizedString("Next Track", comment: "")
+		
+		let oldOS : Bool
+		#if !targetEnvironment(macCatalyst)
+		oldOS = ProcessInfo.processInfo.operatingSystemVersion.majorVersion < 10
+		#else
+		oldOS = false
+		#endif
+		
+		if UserDefaults.standard.object(forKey: PopupSettingsBarStyle) as? LNPopupBarStyle == LNPopupBarStyle.compact || oldOS {
+			popupItem.leftBarButtonItems = [ pause ]
+			popupItem.rightBarButtonItems = [ next ]
 		}
 		else {
-			self.popupItem.leftBarButtonItems = [UIBarButtonItem(image: UIImage(named: "pause"), style: .Plain, target: nil, action: nil)]
-			self.popupItem.rightBarButtonItems = [UIBarButtonItem(image: UIImage(named: "action"), style: .Plain, target: nil, action: nil)]
+			popupItem.rightBarButtonItems = [ pause, next ]
 		}
 		
-		
-		timer = NSTimer.scheduledTimerWithTimeInterval(0.05, target: self, selector: "_timerTicked:", userInfo: nil, repeats: true)
+		accessibilityDateComponentsFormatter.unitsStyle = .spellOut
 	}
 	
 	var songTitle: String = "" {
 		didSet {
-			if isViewLoaded() {
+			if isViewLoaded {
 				songNameLabel.text = songTitle
 			}
 			
@@ -46,10 +58,23 @@ class DemoMusicPlayerController: UIViewController {
 	}
 	var albumTitle: String = "" {
 		didSet {
-			if isViewLoaded() {
+			if isViewLoaded {
 				albumNameLabel.text = albumTitle
 			}
-			popupItem.subtitle = albumTitle
+			#if !targetEnvironment(macCatalyst)
+			if ProcessInfo.processInfo.operatingSystemVersion.majorVersion <= 9 {
+				popupItem.subtitle = albumTitle
+			}
+			#endif
+		}
+	}
+	var albumArt: UIImage = UIImage() {
+		didSet {
+			if isViewLoaded {
+				albumArtImageView.image = albumArt
+			}
+			popupItem.image = albumArt
+			popupItem.accessibilityImageLabel = NSLocalizedString("Album Art", comment: "")
 		}
 	}
 	
@@ -58,19 +83,28 @@ class DemoMusicPlayerController: UIViewController {
 
 		songNameLabel.text = songTitle
 		albumNameLabel.text = albumTitle
-	}
-
-	override func preferredStatusBarStyle() -> UIStatusBarStyle {
-		return .LightContent
+		albumArtImageView.image = albumArt
+		
+		if #available(iOS 13.0, *) {
+			albumArtImageView.layer.cornerCurve = .continuous
+		}
+		albumArtImageView.layer.cornerRadius = 16
+		
+		timer = Timer.scheduledTimer(timeInterval: 0.05, target: self, selector: #selector(DemoMusicPlayerController._timerTicked(_:)), userInfo: nil, repeats: true)
 	}
 	
-	func _timerTicked(timer: NSTimer) {
-		popupItem.progress += 0.007;
+	@objc func _timerTicked(_ timer: Timer) {
+		popupItem.progress += 0.0002;
+		popupItem.accessibilityProgressLabel = NSLocalizedString("Playback Progress", comment: "")
+		
+		let totalTime = TimeInterval(250)
+		popupItem.accessibilityProgressValue = "\(accessibilityDateComponentsFormatter.string(from: TimeInterval(popupItem.progress) * totalTime)!) \(NSLocalizedString("of", comment: "")) \(accessibilityDateComponentsFormatter.string(from: totalTime)!)"
+		
 		progressView.progress = popupItem.progress
 		
-		if popupItem.progress == 1.0 {
+		if popupItem.progress >= 1.0 {
 			timer.invalidate()
-			popupPresentationContainerViewController?.dismissPopupBarAnimated(true, completion: nil)
+			popupPresentationContainer?.dismissPopupBar(animated: true, completion: nil)
 		}
 	}
 }

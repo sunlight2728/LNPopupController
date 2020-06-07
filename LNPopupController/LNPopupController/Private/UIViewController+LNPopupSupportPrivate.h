@@ -12,7 +12,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-void _LNPopupSupportFixInsetsForViewController(UIViewController* viewController, BOOL layout);
+void _LNPopupSupportSetPopupInsetsForViewController(UIViewController* controller, BOOL layout, UIEdgeInsets popupEdgeInsets);
 
 @interface _LNPopupBottomBarSupport : UIView @end
 
@@ -26,8 +26,15 @@ void _LNPopupSupportFixInsetsForViewController(UIViewController* viewController,
 @property (nullable, nonatomic, strong, readonly) UIViewController* popupContentViewController;
 
 @property (nonnull, nonatomic, strong, readonly, getter=_ln_bottomBarSupport) _LNPopupBottomBarSupport* bottomBarSupport;
+- (nullable _LNPopupBottomBarSupport *)_ln_bottomBarSupport_nocreate;
 
-- (nullable UIView *)bottomDockingViewForPopup_nocreate;
+- (BOOL)_isContainedInPopupController;
+
+- (nullable UIView *)bottomDockingViewForPopup_nocreateOrDeveloper;
+- (nonnull UIView *)bottomDockingViewForPopup_internalOrDeveloper;
+
+- (CGRect)defaultFrameForBottomDockingView_internal;
+- (CGRect)defaultFrameForBottomDockingView_internalOrDeveloper;
 
 @end
 

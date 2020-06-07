@@ -2,22 +2,25 @@
   "images" : [
     {
       "idiom" : "universal",
-      "filename" : "MiniPlayerUpNextIcon.png",
+      "filename" : "NowPlaying-More@1x.png",
       "scale" : "1x"
     },
     {
       "idiom" : "universal",
-      "filename" : "MiniPlayerUpNextIcon@2x.png",
+      "filename" : "NowPlaying-More@2x.png",
       "scale" : "2x"
     },
     {
       "idiom" : "universal",
-      "filename" : "MiniPlayerUpNextIcon@3x.png",
+      "filename" : "NowPlaying-More@3x.png",
       "scale" : "3x"
     }
   ],
   "info" : {
     "version" : 1,
     "author" : "xcode"
+  },
+  "properties" : {
+    "template-rendering-intent" : "template"
   }
 }

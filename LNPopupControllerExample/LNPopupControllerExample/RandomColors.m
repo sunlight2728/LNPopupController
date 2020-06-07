@@ -7,19 +7,54 @@
 //
 
 @import UIKit;
+#import "RandomColors.h"
 
-UIColor* LNRandomDarkColor()
+API_AVAILABLE(ios(13.0))
+UIColor* LNRandomAdaptiveColor(void)
+{
+	UIColor* light = LNRandomLightColor();
+	UIColor* dark = LNRandomDarkColor();
+	return [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull collection) {
+		if(collection.userInterfaceStyle == UIUserInterfaceStyleDark)
+		{
+			return dark;
+		}
+		else
+		{
+			return light;
+		}
+	}];
+}
+
+API_AVAILABLE(ios(13.0))
+UIColor* LNRandomAdaptiveInvertedColor(void)
+{
+	UIColor* light = LNRandomLightColor();
+	UIColor* dark = LNRandomDarkColor();
+	return [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull collection) {
+		if(collection.userInterfaceStyle == UIUserInterfaceStyleDark)
+		{
+			return light;
+		}
+		else
+		{
+			return dark;
+		}
+	}];
+}
+
+UIColor* LNRandomDarkColor(void)
 {
 	CGFloat hue = ( arc4random() % 256 / 256.0 );
-	CGFloat saturation = ( arc4random() % 128 / 256.0 ) + 0.7;
-	CGFloat brightness = ( arc4random() % 128 / 256.0 ) + 0.2;
+	CGFloat saturation = 0.5;
+	CGFloat brightness = 0.1 + ( arc4random() % 64 / 256.0 );
 	return [UIColor colorWithHue:hue saturation:saturation brightness:brightness alpha:1];
 }
 
-UIColor* LNRandomLightColor()
+UIColor* LNRandomLightColor(void)
 {
 	CGFloat hue = ( arc4random() % 256 / 256.0 );
-	CGFloat saturation = ( arc4random() % 128 / 256.0 ) + 0.1;
-	CGFloat brightness = ( arc4random() % 128 / 256.0 ) + 0.7;
+	CGFloat saturation = 0.5;
+	CGFloat brightness = 1.0 - ( arc4random() % 64 / 256.0 );
 	return [UIColor colorWithHue:hue saturation:saturation brightness:brightness alpha:1];
 }
